@@ -3,6 +3,7 @@ package leonard
 import (
 	"image"
 	"image/color"
+	"math"
 )
 
 var (
@@ -25,7 +26,7 @@ func grayscale(r, g, b, a uint32) uint16 {
 
 // Convert a colored image to a grayscaled one
 func Grayscale(img image.Image) image.Image {
-	grayscaled := image.NewRGBA(img.Bounds())
+	grayscaled := image.NewNRGBA(img.Bounds())
 
 	bd := img.Bounds()
 	for y := bd.Min.Y; y < bd.Max.Y; y++ {
@@ -39,11 +40,11 @@ func Grayscale(img image.Image) image.Image {
 }
 
 func Binary(img image.Image) image.Image {
-	return BinaryWithThreshold(img, uint16(0xffff*7/10))
+	return BinaryWithThreshold(img, uint16(math.Ceil(0xffff*0.9)))
 }
 
 func BinaryWithThreshold(img image.Image, threshold uint16) image.Image {
-	binary := image.NewRGBA(img.Bounds())
+	binary := image.NewNRGBA(img.Bounds())
 
 	bd := img.Bounds()
 	for y := bd.Min.Y; y < bd.Max.Y; y++ {
