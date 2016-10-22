@@ -6,11 +6,6 @@ import (
 	"math"
 )
 
-var (
-	black = color.Gray16{0}
-	white = color.Gray16{0xffff}
-)
-
 func luminance(r, g, b uint32) float32 {
 	// Ref:
 	// https://en.wikipedia.org/wiki/Grayscale#Converting_color_to_grayscale
