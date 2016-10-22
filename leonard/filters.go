@@ -32,7 +32,7 @@ func gaussianKernel(x float64, sigma float64) float64 {
 
 func GaussianFilter(img image.Image, sigma float64) image.Image {
 	// The radius should grow with sigma. Mathematica uses a factor of 2 [1]
-	// while G. Dryapak uses 3 [2]. A larger one means less computations.
+	// while G. Dryapak uses 3 [2].
 	//
 	// [1] http://dsp.stackexchange.com/a/10067/24352
 	// [2] https://github.com/disintegration/imaging/blob/5b7e226/effects.go#L26
