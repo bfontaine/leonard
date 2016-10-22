@@ -73,21 +73,18 @@ func GaussianFilter(img image.Image, sigma float64) image.Image {
 				ir, ig, ib, ia := img.At(ix, y).RGBA()
 
 				weight := kernel[absint(x-ix)]
-				// TODO factorize this "/ (0xFFFF / 0xFF)" in a function
-				// somewhere. We use this to convert from 0-65535 to 0-255
-				r += weight * float64(ir) / (0xFFFF / 0xFF)
-				g += weight * float64(ig) / (0xFFFF / 0xFF)
-				b += weight * float64(ib) / (0xFFFF / 0xFF)
-				a += weight * float64(ia) / (0xFFFF / 0xFF)
+				r += weight * to255(float64(ir))
+				g += weight * to255(float64(ig))
+				b += weight * to255(float64(ib))
+				a += weight * to255(float64(ia))
 			}
 
-			c := color.RGBA{
+			blured.Set(x, y, color.RGBA{
 				uint8(clip(r/weightsSum, 0.0, 255.0)),
 				uint8(clip(g/weightsSum, 0.0, 255.0)),
 				uint8(clip(b/weightsSum, 0.0, 255.0)),
 				uint8(clip(a/weightsSum, 0.0, 255.0)),
-			}
-			blured.Set(x, y, c)
+			})
 		}
 	}
 
@@ -112,22 +109,21 @@ func GaussianFilter(img image.Image, sigma float64) image.Image {
 			var r, g, b, a float64
 
 			for iy := start; iy <= end; iy++ {
-				ir, ig, ib, ia := img.At(x, iy).RGBA()
+				ir, ig, ib, ia := blured.At(x, iy).RGBA()
 
 				weight := kernel[absint(y-iy)]
-				r += weight * float64(ir) / (0xFFFF / 0xFF)
-				g += weight * float64(ig) / (0xFFFF / 0xFF)
-				b += weight * float64(ib) / (0xFFFF / 0xFF)
-				a += weight * float64(ia) / (0xFFFF / 0xFF)
+				r += weight * to255(float64(ir))
+				g += weight * to255(float64(ig))
+				b += weight * to255(float64(ib))
+				a += weight * to255(float64(ia))
 			}
 
-			c := color.RGBA{
+			blured.Set(x, y, color.RGBA{
 				uint8(clip(r/weightsSum, 0.0, 255.0)),
 				uint8(clip(g/weightsSum, 0.0, 255.0)),
 				uint8(clip(b/weightsSum, 0.0, 255.0)),
 				uint8(clip(a/weightsSum, 0.0, 255.0)),
-			}
-			blured.Set(x, y, c)
+			})
 		}
 	}
 
