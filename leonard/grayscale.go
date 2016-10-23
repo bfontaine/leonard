@@ -29,6 +29,10 @@ func Grayscale(img image.Image) image.Image {
 }
 
 func Binary(img image.Image) image.Image {
+	// TODO Implement Othsu's method:
+	// https://en.wikipedia.org/wiki/Otsu%27s_method
+	// http://ijetch.org/papers/260-T754.pdf
+
 	return BinaryWithThreshold(img, uint16(math.Ceil(0xffff*0.9)))
 }
 
