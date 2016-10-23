@@ -22,6 +22,8 @@ func gradients(img image.Image, fn func(image.Image, int, int) float64) image.Im
 			if g > maxGrad {
 				maxGrad = g
 			}
+			// Storing stuff in a [][]uint16 takes more memory and doesn't save
+			// use time here
 			grads.SetGray16(x, y, color.Gray16{uint16(g)})
 		}
 	}
