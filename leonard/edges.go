@@ -61,6 +61,8 @@ func VerticalGradients(img image.Image) image.Image {
 // Return an image that represents the magnitude of gradients
 func Gradients(img image.Image) image.Image {
 	return gradients(img, func(img image.Image, x, y int) float64 {
+		// Read e.g. http://www.cse.psu.edu/~rtc12/CSE486/lecture02.pdf
+		// Also https://en.wikipedia.org/wiki/Image_gradient
 		h := horizontalGradient(img, x, y)
 		v := verticalGradient(img, x, y)
 		return math.Sqrt(h*h + v*v)
