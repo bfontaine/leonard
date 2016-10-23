@@ -6,15 +6,9 @@ import (
 	"math"
 )
 
-func luminance(r, g, b uint32) float32 {
-	// Ref:
-	// https://en.wikipedia.org/wiki/Grayscale#Converting_color_to_grayscale
-	return 0.2126*float32(r) + 0.7152*float32(g) + 0.0722*float32(b)
-}
-
 func grayscale(r, g, b, a uint32) uint16 {
 	alpha := float32(a) / 0xffff
-	linear := luminance(r, g, b) * alpha
+	linear := luminanceRGB(r, g, b) * alpha
 
 	return uint16(linear)
 }
