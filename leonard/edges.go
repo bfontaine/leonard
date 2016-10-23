@@ -40,16 +40,29 @@ func gradients(img image.Image, fn func(image.Image, int, int) float64) image.Im
 	return grads
 }
 
-// Return an image that represents the intensity of the horizontal gradients
-func HorizontalGradients(img image.Image) image.Image {
-	return gradients(img, func(img image.Image, x, y int) float64 {
-		return float64(luminance(img.At(x+1, y)) - luminance(img.At(x-1, y)))
-	})
+func horizontalGradient(img image.Image, x, y int) float64 {
+	return float64(luminance(img.At(x+1, y)) - luminance(img.At(x-1, y)))
 }
 
-// Return an image that represents the intensity of the vertical gradients
+func verticalGradient(img image.Image, x, y int) float64 {
+	return float64(luminance(img.At(x, y+1)) - luminance(img.At(x, y-1)))
+}
+
+// Return an image that represents the "intensity" of the horizontal gradients
+func HorizontalGradients(img image.Image) image.Image {
+	return gradients(img, horizontalGradient)
+}
+
+// Return an image that represents the "intensity" of the vertical gradients
 func VerticalGradients(img image.Image) image.Image {
+	return gradients(img, verticalGradient)
+}
+
+// Return an image that represents the magnitude of gradients
+func Gradients(img image.Image) image.Image {
 	return gradients(img, func(img image.Image, x, y int) float64 {
-		return float64(luminance(img.At(x, y+1)) - luminance(img.At(x, y-1)))
+		h := horizontalGradient(img, x, y)
+		v := verticalGradient(img, x, y)
+		return math.Sqrt(h*h + v*v)
 	})
 }

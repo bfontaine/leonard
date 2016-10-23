@@ -7,8 +7,9 @@ import (
 	"os"
 
 	"github.com/bfontaine/leonard/leonard"
-
 	"gopkg.in/urfave/cli.v1"
+
+	_ "image/jpeg"
 )
 
 func decodeImage(filename string) (image.Image, error) {
@@ -45,6 +46,7 @@ var transformFuncs = map[string]func(image.Image) image.Image{
 	"binary":     leonard.Binary,
 	"vgradients": leonard.VerticalGradients,
 	"hgradients": leonard.HorizontalGradients,
+	"gradients":  leonard.Gradients,
 	"blur": func(i image.Image) image.Image {
 		return leonard.GaussianFilter(i, 1.4)
 	},
