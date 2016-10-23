@@ -32,7 +32,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	transformed := leonard.GaussianFilter(img, 1.4)
+	transformed := leonard.VerticalGradients(img)
 
 	out, err := os.Create("out.png")
 	if err != nil {

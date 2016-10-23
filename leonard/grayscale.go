@@ -15,7 +15,7 @@ func grayscale(r, g, b, a uint32) uint16 {
 
 // Convert a colored image to a grayscaled one
 func Grayscale(img image.Image) image.Image {
-	grayscaled := image.NewGray(img.Bounds())
+	grayscaled := image.NewGray16(img.Bounds())
 
 	bd := img.Bounds()
 	for y := bd.Min.Y; y < bd.Max.Y; y++ {
@@ -33,7 +33,7 @@ func Binary(img image.Image) image.Image {
 }
 
 func BinaryWithThreshold(img image.Image, threshold uint16) image.Image {
-	binary := image.NewGray(img.Bounds())
+	binary := image.NewGray16(img.Bounds())
 
 	bd := img.Bounds()
 	for y := bd.Min.Y; y < bd.Max.Y; y++ {
