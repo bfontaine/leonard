@@ -4,43 +4,106 @@ import (
 	"fmt"
 	"image"
 	"image/png"
-	"io"
-	"log"
 	"os"
 
 	"github.com/bfontaine/leonard/leonard"
+
+	"gopkg.in/urfave/cli.v1"
 )
 
-func writePNG(img image.Image, w io.Writer) error {
-	return png.Encode(w, img)
-}
+func decodeImage(filename string) (image.Image, error) {
+	var f *os.File
 
-func main() {
-	if len(os.Args) != 2 {
-		fmt.Printf("Usage:\n\t%s <image>\n\n", os.Args[0])
-		os.Exit(1)
+	if filename == "-" {
+		f = os.Stdin
+	} else {
+		var err error
+		if f, err = os.Open(filename); err != nil {
+			return nil, err
+		}
+		defer f.Close()
 	}
 
-	f, err := os.Open(os.Args[1])
+	img, _, err := image.Decode(f)
+
+	return img, err
+}
+
+func encodeImage(img image.Image, filename string) error {
+	f, err := os.Create(filename)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer f.Close()
 
-	img, _, err := image.Decode(f)
-	if err != nil {
-		log.Fatal(err)
+	// TODO use the correct format based on extension
+	return png.Encode(f, img)
+}
+
+var transformFuncs = map[string]func(image.Image) image.Image{
+	"grayscale":  leonard.Grayscale,
+	"binary":     leonard.Binary,
+	"vgradients": leonard.VerticalGradients,
+	"hgradients": leonard.HorizontalGradients,
+	"blur": func(i image.Image) image.Image {
+		return leonard.GaussianFilter(i, 1.4)
+	},
+}
+
+func main() {
+
+	app := cli.NewApp()
+	app.Name = "Leonard"
+	app.Usage = "Apply various transforms on images"
+	app.UsageText = "leonard [options] <image> <output image>"
+	// No "help" command, please. Unfortunately this also hides the flags.
+	app.HideHelp = true
+	app.Flags = []cli.Flag{
+		cli.StringSliceFlag{
+			Name:  "transform, t",
+			Usage: "Transformation to apply. You can chain them.",
+		},
+		cli.BoolFlag{
+			Name:  "list, l",
+			Usage: "List the available transformations",
+		},
 	}
 
-	transformed := leonard.VerticalGradients(img)
+	app.Action = func(c *cli.Context) error {
+		if c.Bool("list") {
+			for name, _ := range transformFuncs {
+				fmt.Println(name)
+			}
+			return nil
+		}
 
-	out, err := os.Create("out.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer out.Close()
+		switch c.NArg() {
+		case 0:
+			return cli.NewExitError("Please give me an image.", 1)
+		case 1:
+			return cli.NewExitError("Please give me an output file.", 1)
+		}
 
-	if err = writePNG(transformed, out); err != nil {
-		log.Fatal(err)
+		img, err := decodeImage(c.Args().First())
+
+		if err != nil {
+			return cli.NewExitError(fmt.Sprintf("Decoding error: %s", err), 1)
+		}
+
+		for _, t := range c.StringSlice("transform") {
+			fn, ok := transformFuncs[t]
+			if !ok {
+				return cli.NewExitError(
+					fmt.Sprintf("Unknown transform '%s'", t), 1)
+			}
+			img = fn(img)
+		}
+
+		if err := encodeImage(img, c.Args().Get(1)); err != nil {
+			return cli.NewExitError(fmt.Sprintf("Write error: %s", err), 1)
+		}
+		return nil
 	}
+
+	app.Run(os.Args)
 }
