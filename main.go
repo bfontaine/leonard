@@ -42,7 +42,7 @@ func encodeImage(img image.Image, filename string) error {
 }
 
 var transformFuncs = map[string]func(image.Image) image.Image{
-	"grayscale":  leonard.Grayscale,
+	"gray":       leonard.Grayscale,
 	"binary":     leonard.Binary,
 	"vgradients": leonard.VerticalGradients,
 	"hgradients": leonard.HorizontalGradients,
