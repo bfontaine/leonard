@@ -44,9 +44,9 @@ func encodeImage(img image.Image, filename string) error {
 var transformFuncs = map[string]func(image.Image) image.Image{
 	"gray":       leonard.Grayscale,
 	"binary":     leonard.Binary,
-	"vgradients": func(i image.Image) image.Image { return leonard.VerticalGradients(i) },
-	"hgradients": func(i image.Image) image.Image { return leonard.HorizontalGradients(i) },
-	"gradients":  func(i image.Image) image.Image { return leonard.Gradients(i) },
+	"vgradients": leonard.VerticalGradients,
+	"hgradients": leonard.HorizontalGradients,
+	"gradients":  leonard.Gradients,
 	"blur":       func(i image.Image) image.Image { return leonard.GaussianFilter(i, 1.4) },
 	"edges": func(i image.Image) image.Image {
 		// arbitrary

@@ -6,7 +6,7 @@ import (
 	"math"
 )
 
-func gradients(img image.Image, fn func(image.Image, int, int) float64) *image.Gray16 {
+func gradients(img image.Image, fn func(image.Image, int, int) float64) image.Image {
 	bounds := img.Bounds()
 	grads := image.NewGray16(bounds)
 
@@ -51,17 +51,17 @@ func verticalGradient(img image.Image, x, y int) float64 {
 }
 
 // Return an image that represents the "intensity" of the horizontal gradients
-func HorizontalGradients(img image.Image) *image.Gray16 {
+func HorizontalGradients(img image.Image) image.Image {
 	return gradients(img, horizontalGradient)
 }
 
 // Return an image that represents the "intensity" of the vertical gradients
-func VerticalGradients(img image.Image) *image.Gray16 {
+func VerticalGradients(img image.Image) image.Image {
 	return gradients(img, verticalGradient)
 }
 
 // Return an image that represents the magnitude of gradients
-func Gradients(img image.Image) *image.Gray16 {
+func Gradients(img image.Image) image.Image {
 	return gradients(img, func(img image.Image, x, y int) float64 {
 		// Read e.g. http://www.cse.psu.edu/~rtc12/CSE486/lecture02.pdf
 		// Also: https://www.cs.umd.edu/~djacobs/CMSC426/ImageGradients.pdf
