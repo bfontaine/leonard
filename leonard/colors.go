@@ -26,19 +26,24 @@ func luminance(c color.Color) float32 {
 	return luminanceRGB(r, g, b)
 }
 
+// BinaryImage is a black & white image represented as a boolean matrix. White
+// represents true pixels and black represents false ones.
 type BinaryImage struct {
 	height, width int
 	pixels        []bool
 }
 
+// ColorModel implements the image.Image interface
 func (b *BinaryImage) ColorModel() color.Model {
 	return color.GrayModel
 }
 
+// Bounds implements the image.Image interface
 func (b *BinaryImage) Bounds() image.Rectangle {
 	return image.Rect(0, 0, b.width, b.height)
 }
 
+// At implements the image.Image interface
 func (b *BinaryImage) At(x, y int) color.Color {
 	if b.Get(x, y) {
 		return white
@@ -46,6 +51,7 @@ func (b *BinaryImage) At(x, y int) color.Color {
 	return black
 }
 
+// Set sets the value at a given pixel
 func (b *BinaryImage) Set(x, y int, value bool) {
 	idx := y*b.width + x
 	if idx < 0 || idx >= len(b.pixels) {
@@ -55,6 +61,7 @@ func (b *BinaryImage) Set(x, y int, value bool) {
 	b.pixels[idx] = value
 }
 
+// Get returns the boolean value at a given pixel
 func (b *BinaryImage) Get(x, y int) bool {
 	idx := y*b.width + x
 	if idx < 0 || idx >= len(b.pixels) {
@@ -63,6 +70,7 @@ func (b *BinaryImage) Get(x, y int) bool {
 	return b.pixels[idx]
 }
 
+// NewEmptyBinaryImage returns a new empty (= all black) binary image
 func NewEmptyBinaryImage(height, width int) *BinaryImage {
 	return &BinaryImage{
 		height: height,
@@ -71,8 +79,17 @@ func NewEmptyBinaryImage(height, width int) *BinaryImage {
 	}
 }
 
+// DefaultBinaryThreshold is the default threshold used for binary images.
+const DefaultBinaryThreshold = 0x28F6 // 0.16 * 0xFFFF
+
+// NewBinaryImage creates a new binary image from a given one. The default
+// threshold is used is the passed value is -1.
 func NewBinaryImage(img image.Image, threshold int) *BinaryImage {
 	bounds := img.Bounds()
+
+	if threshold == -1 {
+		threshold = DefaultBinaryThreshold
+	}
 
 	b := NewEmptyBinaryImage(bounds.Max.Y, bounds.Max.X)
 

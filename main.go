@@ -15,18 +15,17 @@ var transformFuncs = map[string]func(image.Image) image.Image{
 	"vgradients": leonard.VerticalGradients,
 	"hgradients": leonard.HorizontalGradients,
 	"gradients":  leonard.Gradients,
-	"blur":       func(i image.Image) image.Image { return leonard.GaussianFilter(i, 1.4) },
+	"blur": func(i image.Image) image.Image {
+		return leonard.GaussianFilter(i, 1.4)
+	},
 	"edges": func(i image.Image) image.Image {
 		// arbitrary
-		threshold := 0.16 * 0xFFFF
 		return leonard.NewBinaryImage(
-			leonard.Gradients(
-				leonard.GaussianFilter(i, 5.0)), int(threshold)).ThinEdges()
+			leonard.Gradients(leonard.GaussianFilter(i, 5.0)), -1).ThinEdges()
 	},
 }
 
 func main() {
-
 	app := cli.NewApp()
 	app.Name = "Leonard"
 	app.Usage = "Apply various transforms on images"
@@ -46,7 +45,7 @@ func main() {
 
 	app.Action = func(c *cli.Context) error {
 		if c.Bool("list") {
-			for name, _ := range transformFuncs {
+			for name := range transformFuncs {
 				fmt.Println(name)
 			}
 			return nil

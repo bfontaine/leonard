@@ -30,6 +30,8 @@ func gaussianKernel(x float64, sigma float64) float64 {
 	return math.Exp(-(x * x / (2 * sigma * sigma))) / (sigma * math.Sqrt(2*math.Pi))
 }
 
+// GaussianFilter applies a gaussian filter with the given sigma parameter on
+// the image.
 func GaussianFilter(img image.Image, sigma float64) image.Image {
 	// The radius should grow with sigma. Mathematica uses a factor of 2 [1]
 	// while G. Dryapak uses 3 [2].

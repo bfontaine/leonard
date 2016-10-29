@@ -13,7 +13,7 @@ func grayscale(r, g, b, a uint32) uint16 {
 	return uint16(linear)
 }
 
-// Convert a colored image to a grayscaled one
+// Grayscale converts a colored image to a grayscaled one
 func Grayscale(img image.Image) image.Image {
 	grayscaled := image.NewGray16(img.Bounds())
 
@@ -28,6 +28,7 @@ func Grayscale(img image.Image) image.Image {
 	return grayscaled
 }
 
+// Binary returns a binary image. Use NewBinaryImage to use a custom threshold.
 func Binary(img image.Image) image.Image {
 	// TODO Implement Othsu's method to get the correct theshold:
 	// https://en.wikipedia.org/wiki/Otsu%27s_method

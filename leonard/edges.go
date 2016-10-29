@@ -50,17 +50,19 @@ func verticalGradient(img image.Image, x, y int) float64 {
 	return float64(luminance(img.At(x, y+1)) - luminance(img.At(x, y-1)))
 }
 
-// Return an image that represents the "intensity" of the horizontal gradients
+// HorizontalGradients returns an image that represents the magnitude of the
+// horizontal gradients
 func HorizontalGradients(img image.Image) image.Image {
 	return gradients(img, horizontalGradient)
 }
 
-// Return an image that represents the "intensity" of the vertical gradients
+// VerticalGradients returns an image that represents the magnitude of the
+// vertical gradients
 func VerticalGradients(img image.Image) image.Image {
 	return gradients(img, verticalGradient)
 }
 
-// Return an image that represents the magnitude of gradients
+// Gradients returns an image that represents the magnitude of gradients
 func Gradients(img image.Image) image.Image {
 	return gradients(img, func(img image.Image, x, y int) float64 {
 		// Read e.g. http://www.cse.psu.edu/~rtc12/CSE486/lecture02.pdf
@@ -180,8 +182,8 @@ func (b *BinaryImage) thinEdgesIteration(odd bool) (*BinaryImage, bool) {
 	return b2, changed
 }
 
-// Thin the edges of an image [that went through Gradients()] and return it.
-// The image is modified in-place.
+// ThinEdges thins the edges of an image [that went through Gradients()] and
+// return it. The image is modified in-place.
 func (b *BinaryImage) ThinEdges() *BinaryImage {
 	// We use Zhang-Suen's algorithm (1984) + modifications from Kocharyan
 	// (2013)

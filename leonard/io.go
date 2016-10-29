@@ -1,7 +1,6 @@
 package leonard
 
 import (
-	"errors"
 	"fmt"
 	"image"
 	"image/gif"
@@ -29,7 +28,7 @@ func SaveImage(img image.Image, filename string) error {
 	case "gif":
 		return gif.Encode(f, img, nil)
 	default:
-		return errors.New(fmt.Sprintf("Unknown format: %s", ext))
+		return fmt.Errorf("Unknown format: %s", ext)
 	}
 }
 
