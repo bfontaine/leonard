@@ -162,15 +162,12 @@ func (b *BinaryImage) ThinEdges() *BinaryImage {
 	// Here we use the modified version of the Zhang-Suen's algorithm outlined
 	// in Kocharyan's paper.
 
-	changed := true
+	changed1 := true
+	changed2 := true
 
-	var changed1, changed2 bool
-
-	for changed {
+	for changed1 || changed2 {
 		b, changed1 = b.thinEdgesIteration(true)
 		b, changed2 = b.thinEdgesIteration(false)
-
-		changed = changed1 || changed2
 	}
 
 	return b
