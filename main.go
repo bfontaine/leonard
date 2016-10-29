@@ -15,6 +15,7 @@ var transformFuncs = map[string]func(image.Image) image.Image{
 	"vgradients": leonard.VerticalGradients,
 	"hgradients": leonard.HorizontalGradients,
 	"gradients":  leonard.Gradients,
+	"downscale":  leonard.Downscale,
 	"blur": func(i image.Image) image.Image {
 		return leonard.GaussianFilter(i, 1.4)
 	},
