@@ -12,7 +12,7 @@ var (
 
 // Convert a value in a 0-0xFFFF range into one in a 0-0xFF one
 func to255(n float64) float64 {
-	return clip(n*0xFF/0xFFFF, 0, 0xFFFF)
+	return n * 0xFF / 0xFFFF
 }
 
 func luminanceRGB(r, g, b uint32) float32 {

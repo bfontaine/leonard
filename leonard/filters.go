@@ -6,6 +6,10 @@ import (
 	"math"
 )
 
+func absint(n int) int {
+	return int(math.Abs(float64(n)))
+}
+
 func gaussianKernel(x float64, sigma float64) float64 {
 	// The Gaussian filter is the convolution between a kernel and the image
 	// matrix [1,2,3,4,5,6].
@@ -82,10 +86,10 @@ func GaussianFilter(img image.Image, sigma float64) image.Image {
 			}
 
 			blured.Set(x, y, color.RGBA{
-				uint8(clip(r/weightsSum, 0.0, 255.0)),
-				uint8(clip(g/weightsSum, 0.0, 255.0)),
-				uint8(clip(b/weightsSum, 0.0, 255.0)),
-				uint8(clip(a/weightsSum, 0.0, 255.0)),
+				uint8(r / weightsSum),
+				uint8(g / weightsSum),
+				uint8(b / weightsSum),
+				uint8(a / weightsSum),
 			})
 		}
 	}
@@ -121,10 +125,10 @@ func GaussianFilter(img image.Image, sigma float64) image.Image {
 			}
 
 			blured.Set(x, y, color.RGBA{
-				uint8(clip(r/weightsSum, 0.0, 255.0)),
-				uint8(clip(g/weightsSum, 0.0, 255.0)),
-				uint8(clip(b/weightsSum, 0.0, 255.0)),
-				uint8(clip(a/weightsSum, 0.0, 255.0)),
+				uint8(r / weightsSum),
+				uint8(g / weightsSum),
+				uint8(b / weightsSum),
+				uint8(a / weightsSum),
 			})
 		}
 	}
