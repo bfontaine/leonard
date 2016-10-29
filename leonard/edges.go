@@ -82,6 +82,11 @@ func (b *BinaryImage) thinEdgesIteration(odd bool) (*BinaryImage, bool) {
 				continue
 			}
 
+			b2.Set(x, y, true)
+
+			// p9 p2 p3
+			// p8 P1 p4
+			// p7 p6 p5
 			p2 := b.Get(north.apply(x, y))
 			p3 := b.Get(northeast.apply(x, y))
 			p4 := b.Get(east.apply(x, y))
@@ -111,9 +116,9 @@ func (b *BinaryImage) thinEdgesIteration(odd bool) (*BinaryImage, bool) {
 				}
 			}
 
+			// (a)
 			if count < 2 || count > 6 {
 				// preserve the node
-				b2.Set(x, y, true)
 				continue
 			}
 
@@ -122,26 +127,54 @@ func (b *BinaryImage) thinEdgesIteration(odd bool) (*BinaryImage, bool) {
 				transitions++
 			}
 
+			// (a), (b), (c), (d) below come from the original paper
+
 			switch transitions {
+			// (a)
 			case 1:
-				if (odd && (!(p2 && p4 && p6) || !(p4 && p6 && p8))) ||
-					(!odd && (!(p2 && p4 && p8) || !(p2 && p6 && p8))) {
-					// delete the pixel
-					// m.set(x, y, false)
-					changed = true
-					continue
+				// (b)
+				if odd {
+					// first subiteration
+
+					// (c)
+					if p2 && p4 && p6 {
+						continue
+					}
+
+					// (d)
+					if p4 && p6 && p8 {
+						continue
+					}
+				} else {
+					// second subiteration
+
+					// (c')
+					if p2 && p4 && p8 {
+						continue
+					}
+
+					// (d')
+					if p2 && p6 && p8 {
+						continue
+					}
 				}
 			case 2:
-				if (odd && ((p4 && p6 && !p9) || (p4 && p2 && !p3 && !p7 && !p8))) ||
-					(!odd && ((p2 && p8 && !p5) || (p6 && p8 && !p3 && !p4 && !p7))) {
-					// delete the pixel
-					// m.set(x, y, false)
-					changed = true
-					continue
+				// Kocharyan (2013)'s modifications
+				if odd {
+					if !p4 || !p2 || p3 || p7 || p8 {
+						continue
+					}
+				} else {
+					if !p6 || !p8 || p3 || p4 || p7 {
+						continue
+					}
 				}
 			}
-			// if the pixel hasn't been deleted, keep it
-			b2.Set(x, y, true)
+
+			// delete the pixel
+			b2.Set(x, y, false)
+			changed = true
+
 		}
 	}
 	return b2, changed
@@ -150,17 +183,17 @@ func (b *BinaryImage) thinEdgesIteration(odd bool) (*BinaryImage, bool) {
 // Thin the edges of an image [that went through Gradients()] and return it.
 // The image is modified in-place.
 func (b *BinaryImage) ThinEdges() *BinaryImage {
-	// There are a bunch of algorithms to do edge-thinning; the simplest ones
-	// being the slowest.
-	//
-	// I tried that one but it's sooo slow:
-	// https://users.fmrib.ox.ac.uk/~steve/susan/thinning/node2.html
-	//
-	// See http://article.sciencepublishinggroup.com/pdf/10.11648.j.ajsea.20130201.11.pdf
-	// for an overview of other existing algorithms.
+	// We use Zhang-Suen's algorithm (1984) + modifications from Kocharyan
+	// (2013)
 
-	// Here we use the modified version of the Zhang-Suen's algorithm outlined
-	// in Kocharyan's paper.
+	// See:
+	// https://dl.acm.org/citation.cfm?id=358023
+	// http://article.sciencepublishinggroup.com/pdf/10.11648.j.ajsea.20130201.11.pdf
+
+	// TODO check http://www.uel.br/pessoal/josealexandre/stuff/thinning/ftp/zhang-wang.pdf
+
+	// There's also this algorithm but it's really slow:
+	// https://users.fmrib.ox.ac.uk/~steve/susan/thinning/node2.html
 
 	changed1 := true
 	changed2 := true
