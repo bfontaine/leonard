@@ -62,80 +62,81 @@ func VerticalGradients(img image.Image) *image.Gray16 {
 
 // Return an image that represents the magnitude of gradients
 func Gradients(img image.Image) *image.Gray16 {
-	return ThinEdges(gradients(img, func(img image.Image, x, y int) float64 {
+	return gradients(img, func(img image.Image, x, y int) float64 {
 		// Read e.g. http://www.cse.psu.edu/~rtc12/CSE486/lecture02.pdf
 		// Also: https://www.cs.umd.edu/~djacobs/CMSC426/ImageGradients.pdf
 		//       https://en.wikipedia.org/wiki/Image_gradient
 		h := horizontalGradient(img, x, y)
 		v := verticalGradient(img, x, y)
 		return math.Sqrt(h*h + v*v)
-	}))
+	})
 }
 
-// Return true if the point at the given coordinates is the sole connection
-// between some of its neighbours; i.e. if it splits its neighborhood in two
-// when removed.
-//
-// Note: We use the Moore neighborhood: https://en.wikipedia.org/wiki/Moore_neighborhood
-//
-// Examples:
-//
-//     ooo            o..            o..            .o.             ooo
-//     oxo -> false   ox. -> false   .x. -> true    oxo -> false    .x. -> true
-//     ooo            o..            ooo            ...             ooo
-//
-func isSoleConnection(neighborhood *boolMatrix, x, y int) bool {
+func thinEdgesIteration(m *boolMatrix, odd bool) bool {
+	changed := false
+	for y := 0; y < m.height; y++ {
+		for x := 0; x < m.width; x++ {
+			if !m.get(x, y) {
+				continue
+			}
 
-	// FIXME This is wrong; it checks if there's an isolated neighbour instead
-	// of looking for two components.
+			p2 := m.get(north.apply(x, y))
+			p3 := m.get(northeast.apply(x, y))
+			p4 := m.get(east.apply(x, y))
+			p5 := m.get(southeast.apply(x, y))
+			p6 := m.get(south.apply(x, y))
+			p7 := m.get(southwest.apply(x, y))
+			p8 := m.get(west.apply(x, y))
+			p9 := m.get(northwest.apply(x, y))
 
-	// for each neighbour...
-	for _, no := range neighboursOffsets {
-		hasNeighbour := false
-		px, py := no.apply(1, 1)
+			// B(P1)
+			count := 0
+			// A(P1)
+			transitions := 0
+			lastWas0 := false
+			for _, p := range []bool{p2, p3, p4, p5, p6, p7, p8, p9} {
+				if !p {
+					// 0
+					lastWas0 = true
+				} else {
+					count++
 
-		// check each of its neighboors...
-		for _, nno := range neighboursOffsets {
-			// if it has at least one it's not isolated: stop
-			if neighborhood.get(nno.apply(px, py)) {
-				hasNeighbour = true
-				break
+					if lastWas0 {
+						// 0->1
+						lastWas0 = false
+						transitions++
+					}
+				}
+			}
+
+			if count < 2 || count > 6 {
+				continue
+			}
+
+			// last transition
+			if !p9 && p2 {
+				transitions++
+			}
+
+			switch transitions {
+			case 1:
+				if (odd && (!(p2 && p4 && p6) || !(p4 && p6 && p8))) ||
+					(!odd && (!(p2 && p4 && p8) || !(p2 && p6 && p8))) {
+					m.set(x, y, false)
+					changed = true
+					continue
+				}
+			case 2:
+				if (odd && ((p4 && p6 && !p9) || (p4 && p2 && !p3 && !p7 && !p8))) ||
+					(!odd && ((p2 && p8 && !p5) || (p6 && p8 && !p3 && !p4 && !p7))) {
+					m.set(x, y, false)
+					changed = true
+					continue
+				}
 			}
 		}
-
-		if !hasNeighbour {
-			return true
-		}
 	}
-
-	return false
-}
-
-func edgePointShouldBeRemoved(m *boolMatrix, x, y int) bool {
-	// Build the neighborhood; excluding self
-	neighborhood := newBoolMatrix(3, 3)
-	for _, no := range neighboursOffsets {
-		mx, my := no.apply(x, y)
-		nx, ny := no.apply(1, 1)
-
-		neighborhood.set(nx, ny, m.get(mx, my))
-	}
-
-	// see http://homepages.inf.ed.ac.uk/rbf/HIPR2/thin.htm
-
-	count := neighborhood.count(true)
-
-	// Not at a region boundary
-	if count == 8 {
-		return false
-	}
-
-	// isolated
-	if count == 0 {
-		return true
-	}
-
-	return !isSoleConnection(neighborhood, x, y)
+	return changed
 }
 
 // Thin the edges of an image that went through Gradients() and return it.
@@ -143,19 +144,23 @@ func edgePointShouldBeRemoved(m *boolMatrix, x, y int) bool {
 func ThinEdges(img *image.Gray16) *image.Gray16 {
 	m := toBoolMatrix(img)
 
-	// NOTE: We could probably optimize the neighbors lookup we perform for
-	// *each* pixel at *each* step
+	// There are a bunch of algorithms to do edge-thinning; the simplest ones
+	// being the slowest.
+	//
+	// I tried that one but it's sooo slow:
+	// https://users.fmrib.ox.ac.uk/~steve/susan/thinning/node2.html
+	//
+	// See http://article.sciencepublishinggroup.com/pdf/10.11648.j.ajsea.20130201.11.pdf
+	// for an overview of other existing algorithms.
 
-	passes := 4 // this should be configurable
+	// Here we use the modified version of the Zhang-Suen's algorithm outlined
+	// in Kocharyan's paper.
 
-	for p := 0; p < passes; p++ {
-		for y := 0; y < m.height; y++ {
-			for x := 0; x < m.width; x++ {
-				if edgePointShouldBeRemoved(m, x, y) {
-					m.set(x, y, false)
-				}
-			}
-		}
+	changed := true
+
+	for changed {
+		changed = thinEdgesIteration(m, true)
+		changed = thinEdgesIteration(m, false) || changed
 	}
 
 	bounds := img.Bounds()

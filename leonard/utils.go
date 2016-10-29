@@ -9,6 +9,13 @@ func absint(n int) int {
 	return int(math.Abs(float64(n)))
 }
 
+func maxint(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 func abs32(n float32) float64 { return math.Abs(float64(n)) }
 
 func clip(n, min, max float64) float64 {

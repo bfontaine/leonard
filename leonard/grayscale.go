@@ -28,15 +28,15 @@ func Grayscale(img image.Image) image.Image {
 	return grayscaled
 }
 
-func Binary(img image.Image) image.Image {
+func Binary(img image.Image) *image.Gray16 {
 	// TODO Implement Othsu's method:
 	// https://en.wikipedia.org/wiki/Otsu%27s_method
 	// http://ijetch.org/papers/260-T754.pdf
 
-	return BinaryWithThreshold(img, uint16(math.Ceil(0xffff*0.9)))
+	return BinaryWithThreshold(img, uint16(math.Ceil(0xffff*0.6)))
 }
 
-func BinaryWithThreshold(img image.Image, threshold uint16) image.Image {
+func BinaryWithThreshold(img image.Image, threshold uint16) *image.Gray16 {
 	binary := image.NewGray16(img.Bounds())
 
 	bd := img.Bounds()
