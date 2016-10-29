@@ -72,22 +72,24 @@ func Gradients(img image.Image) *image.Gray16 {
 	})
 }
 
-func thinEdgesIteration(m *boolMatrix, odd bool) bool {
+func (b *BinaryImage) thinEdgesIteration(odd bool) (*BinaryImage, bool) {
+	b2 := NewEmptyBinaryImage(b.height, b.width)
+
 	changed := false
-	for y := 0; y < m.height; y++ {
-		for x := 0; x < m.width; x++ {
-			if !m.get(x, y) {
+	for y := 0; y < b.height; y++ {
+		for x := 0; x < b.width; x++ {
+			if !b.Get(x, y) {
 				continue
 			}
 
-			p2 := m.get(north.apply(x, y))
-			p3 := m.get(northeast.apply(x, y))
-			p4 := m.get(east.apply(x, y))
-			p5 := m.get(southeast.apply(x, y))
-			p6 := m.get(south.apply(x, y))
-			p7 := m.get(southwest.apply(x, y))
-			p8 := m.get(west.apply(x, y))
-			p9 := m.get(northwest.apply(x, y))
+			p2 := b.Get(north.apply(x, y))
+			p3 := b.Get(northeast.apply(x, y))
+			p4 := b.Get(east.apply(x, y))
+			p5 := b.Get(southeast.apply(x, y))
+			p6 := b.Get(south.apply(x, y))
+			p7 := b.Get(southwest.apply(x, y))
+			p8 := b.Get(west.apply(x, y))
+			p9 := b.Get(northwest.apply(x, y))
 
 			// B(P1)
 			count := 0
@@ -110,6 +112,8 @@ func thinEdgesIteration(m *boolMatrix, odd bool) bool {
 			}
 
 			if count < 2 || count > 6 {
+				// preserve the node
+				b2.Set(x, y, true)
 				continue
 			}
 
@@ -122,28 +126,30 @@ func thinEdgesIteration(m *boolMatrix, odd bool) bool {
 			case 1:
 				if (odd && (!(p2 && p4 && p6) || !(p4 && p6 && p8))) ||
 					(!odd && (!(p2 && p4 && p8) || !(p2 && p6 && p8))) {
-					m.set(x, y, false)
+					// delete the pixel
+					// m.set(x, y, false)
 					changed = true
 					continue
 				}
 			case 2:
 				if (odd && ((p4 && p6 && !p9) || (p4 && p2 && !p3 && !p7 && !p8))) ||
 					(!odd && ((p2 && p8 && !p5) || (p6 && p8 && !p3 && !p4 && !p7))) {
-					m.set(x, y, false)
+					// delete the pixel
+					// m.set(x, y, false)
 					changed = true
 					continue
 				}
 			}
+			// if the pixel hasn't been deleted, keep it
+			b2.Set(x, y, true)
 		}
 	}
-	return changed
+	return b2, changed
 }
 
-// Thin the edges of an image that went through Gradients() and return it.
+// Thin the edges of an image [that went through Gradients()] and return it.
 // The image is modified in-place.
-func ThinEdges(img *image.Gray16) *image.Gray16 {
-	m := toBoolMatrix(img)
-
+func (b *BinaryImage) ThinEdges() *BinaryImage {
 	// There are a bunch of algorithms to do edge-thinning; the simplest ones
 	// being the slowest.
 	//
@@ -158,19 +164,14 @@ func ThinEdges(img *image.Gray16) *image.Gray16 {
 
 	changed := true
 
+	var changed1, changed2 bool
+
 	for changed {
-		changed = thinEdgesIteration(m, true)
-		changed = thinEdgesIteration(m, false) || changed
+		b, changed1 = b.thinEdgesIteration(true)
+		b, changed2 = b.thinEdgesIteration(false)
+
+		changed = changed1 || changed2
 	}
 
-	bounds := img.Bounds()
-	for y := 0; y < m.height; y++ {
-		for x := 0; x < m.width; x++ {
-			if !m.get(x, y) {
-				img.SetGray16(x+bounds.Min.X, y+bounds.Min.Y, black)
-			}
-		}
-	}
-
-	return img
+	return b
 }
