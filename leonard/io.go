@@ -21,11 +21,11 @@ func SaveImage(img image.Image, filename string) error {
 	defer f.Close()
 
 	switch ext := strings.ToLower(filepath.Ext(filename)); ext {
-	case "jpg", "jpeg":
+	case ".jpg", ".jpeg":
 		return jpeg.Encode(f, img, nil)
-	case "", "png":
+	case "", ".png":
 		return png.Encode(f, img)
-	case "gif":
+	case ".gif":
 		return gif.Encode(f, img, nil)
 	default:
 		return fmt.Errorf("Unknown format: %s", ext)

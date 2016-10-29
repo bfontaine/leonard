@@ -19,7 +19,6 @@ var transformFuncs = map[string]func(image.Image) image.Image{
 		return leonard.GaussianFilter(i, 1.4)
 	},
 	"edges": func(i image.Image) image.Image {
-		// arbitrary
 		return leonard.NewBinaryImage(
 			leonard.Gradients(leonard.GaussianFilter(i, 5.0)), -1).ThinEdges()
 	},
