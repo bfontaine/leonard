@@ -1,15 +1,18 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"image"
+	"image/gif"
+	"image/jpeg"
 	"image/png"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/bfontaine/leonard/leonard"
 	"gopkg.in/urfave/cli.v1"
-
-	_ "image/jpeg"
 )
 
 func decodeImage(filename string) (image.Image, error) {
@@ -37,8 +40,17 @@ func encodeImage(img image.Image, filename string) error {
 	}
 	defer f.Close()
 
-	// TODO use the correct format based on extension
-	return png.Encode(f, img)
+	switch ext := strings.ToLower(filepath.Ext(filename)); ext {
+	case "jpg", "jpeg":
+		return jpeg.Encode(f, img, nil)
+	case "png":
+		return png.Encode(f, img)
+	case "gif":
+		return gif.Encode(f, img, nil)
+	default:
+		return errors.New(fmt.Sprintf("Unknown format: %s", ext))
+	}
+
 }
 
 var transformFuncs = map[string]func(image.Image) image.Image{
