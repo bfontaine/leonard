@@ -78,107 +78,101 @@ func (b *BinaryImage) thinEdgesIteration(odd bool) (*BinaryImage, bool) {
 	b2 := NewEmptyBinaryImage(b.height, b.width)
 
 	changed := false
-	for y := 0; y < b.height; y++ {
-		for x := 0; x < b.width; x++ {
-			if !b.Get(x, y) {
-				continue
-			}
+	b.EachPixel(func(x, y int) {
+		b2.Set(x, y, true)
 
-			b2.Set(x, y, true)
+		// p9 p2 p3
+		// p8 P1 p4
+		// p7 p6 p5
+		p2 := b.Get(north.apply(x, y))
+		p3 := b.Get(northeast.apply(x, y))
+		p4 := b.Get(east.apply(x, y))
+		p5 := b.Get(southeast.apply(x, y))
+		p6 := b.Get(south.apply(x, y))
+		p7 := b.Get(southwest.apply(x, y))
+		p8 := b.Get(west.apply(x, y))
+		p9 := b.Get(northwest.apply(x, y))
 
-			// p9 p2 p3
-			// p8 P1 p4
-			// p7 p6 p5
-			p2 := b.Get(north.apply(x, y))
-			p3 := b.Get(northeast.apply(x, y))
-			p4 := b.Get(east.apply(x, y))
-			p5 := b.Get(southeast.apply(x, y))
-			p6 := b.Get(south.apply(x, y))
-			p7 := b.Get(southwest.apply(x, y))
-			p8 := b.Get(west.apply(x, y))
-			p9 := b.Get(northwest.apply(x, y))
+		// B(P1)
+		count := 0
+		// A(P1)
+		transitions := 0
+		lastWas0 := false
+		for _, p := range []bool{p2, p3, p4, p5, p6, p7, p8, p9} {
+			if !p {
+				// 0
+				lastWas0 = true
+			} else {
+				count++
 
-			// B(P1)
-			count := 0
-			// A(P1)
-			transitions := 0
-			lastWas0 := false
-			for _, p := range []bool{p2, p3, p4, p5, p6, p7, p8, p9} {
-				if !p {
-					// 0
-					lastWas0 = true
-				} else {
-					count++
-
-					if lastWas0 {
-						// 0->1
-						lastWas0 = false
-						transitions++
-					}
+				if lastWas0 {
+					// 0->1
+					lastWas0 = false
+					transitions++
 				}
 			}
-
-			// (a)
-			if count < 2 || count > 6 {
-				// preserve the node
-				continue
-			}
-
-			// last transition
-			if !p9 && p2 {
-				transitions++
-			}
-
-			// (a), (b), (c), (d) below come from the original paper
-
-			switch transitions {
-			// (a)
-			case 1:
-				// (b)
-				if odd {
-					// first subiteration
-
-					// (c)
-					if p2 && p4 && p6 {
-						continue
-					}
-
-					// (d)
-					if p4 && p6 && p8 {
-						continue
-					}
-				} else {
-					// second subiteration
-
-					// (c')
-					if p2 && p4 && p8 {
-						continue
-					}
-
-					// (d')
-					if p2 && p6 && p8 {
-						continue
-					}
-				}
-			case 2:
-				// Kocharyan (2013)'s modifications
-				if odd {
-					if !p4 || !p2 || p3 || p7 || p8 {
-						continue
-					}
-				} else {
-					if !p6 || !p8 || p3 || p4 || p7 {
-						continue
-					}
-				}
-			}
-
-			// delete the pixel
-			b2.Set(x, y, false)
-			changed = true
-
 		}
-	}
+
+		// (a)
+		if count < 2 || count > 6 {
+			// preserve the node
+			return
+		}
+
+		// last transition
+		if !p9 && p2 {
+			transitions++
+		}
+
+		// (a), (b), (c), (d) below come from the original paper
+
+		switch transitions {
+		// (a)
+		case 1:
+			// (b)
+			if odd {
+				// first subiteration
+
+				// (c)
+				if p2 && p4 && p6 {
+					return
+				}
+
+				// (d)
+				if p4 && p6 && p8 {
+					return
+				}
+			} else {
+				// second subiteration
+
+				// (c')
+				if p2 && p4 && p8 {
+					return
+				}
+
+				// (d')
+				if p2 && p6 && p8 {
+					return
+				}
+			}
+		case 2:
+			// Kocharyan (2013)'s modifications
+			if odd {
+				if !p4 || !p2 || p3 || p7 || p8 {
+					return
+				}
+			} else {
+				if !p6 || !p8 || p3 || p4 || p7 {
+					return
+				}
+			}
+		}
+
+		// delete the pixel
+		b2.Set(x, y, false)
+		changed = true
+
+	})
 	return b2, changed
 }
 

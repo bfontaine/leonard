@@ -83,6 +83,13 @@ func (b *BinaryImage) Invert() {
 	}
 }
 
+// EachPixel calls the given function on each truthy pixel
+func (b *BinaryImage) EachPixel(fn func(x, y int)) {
+	for p := range b.pixels {
+		fn(p.X, p.Y)
+	}
+}
+
 // NewEmptyBinaryImage returns a new empty (= all black) binary image
 func NewEmptyBinaryImage(height, width int) *BinaryImage {
 	return &BinaryImage{
