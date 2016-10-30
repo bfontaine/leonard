@@ -1,9 +1,6 @@
 package leonard
 
-import (
-	"image"
-	"math"
-)
+import "math"
 
 const (
 	// we only support 3 directions for now
@@ -18,11 +15,11 @@ const (
 // https://en.wikipedia.org/wiki/Randomized_Hough_transform
 // http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/AV1011/macdonald.pdf
 
-// We store all points for each bin to know where to start/end each line
-type houghBin []image.Point
+// Re the HT issues see:
+// https://www.uio.no/studier/emner/matnat/ifi/INF4300/h09/undervisningsmateriale/hough09.pdf
 
 type houghAccumulator struct {
-	bins     [][thetaCount]houghBin
+	bins     [][thetaCount]uint8
 	binWidth int
 }
 
@@ -38,7 +35,7 @@ func newHoughAccumulator(b *BinaryImage, binWidth int) *houghAccumulator {
 	bins := (maxR-minR)/binWidth + 1
 
 	return &houghAccumulator{
-		bins:     make([][thetaCount]houghBin, bins),
+		bins:     make([][thetaCount]uint8, bins),
 		binWidth: binWidth,
 	}
 }
@@ -57,18 +54,7 @@ func (acc *houghAccumulator) Inc(x, y, theta int) {
 		panic("Invalid theta")
 	}
 
-	acc.bins[bin][theta] = append(acc.bins[bin][theta], image.Point{x, y})
-}
-
-func (acc houghAccumulator) Max() (m int) {
-	for _, bin := range acc.bins {
-		for _, v := range bin {
-			if l := len(v); l > m {
-				m = l
-			}
-		}
-	}
-	return m
+	acc.bins[bin][theta]++
 }
 
 // HoughTransform performs a Hough Transform on the image and return an
@@ -105,11 +91,11 @@ func (b *BinaryImage) HoughTransform() *houghAccumulator {
 // DrawLines takes an (r, theta) accumulator as returned by HoughTransform and
 // draw the corresponding lines on the image.
 func (b *BinaryImage) DrawLines(acc *houghAccumulator) {
-	threshold := acc.binWidth * 5 // arbitrary
+	threshold := uint8(acc.binWidth * 5) // arbitrary
 
 	for r, ts := range acc.bins {
 		for theta, n := range ts {
-			if len(n) < threshold {
+			if n < threshold {
 				continue
 			}
 
