@@ -200,10 +200,15 @@ func (b *BinaryImage) ThinEdges() *BinaryImage {
 	changed1 := true
 	changed2 := true
 
+	var b2 *BinaryImage
+
 	for changed1 || changed2 {
-		b, changed1 = b.thinEdgesIteration(true)
-		b, changed2 = b.thinEdgesIteration(false)
+		b2, changed1 = b.thinEdgesIteration(true)
+		b2, changed2 = b2.thinEdgesIteration(false)
 	}
+
+	// Modify in-place
+	b.pixels = b2.pixels
 
 	return b
 }

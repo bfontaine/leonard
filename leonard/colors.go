@@ -26,11 +26,14 @@ func luminance(c color.Color) float32 {
 	return luminanceRGB(r, g, b)
 }
 
-// BinaryImage is a black & white image represented as a boolean matrix. White
-// represents true pixels and black represents false ones.
+// BinaryImage is a black & white image represented as a boolean matrix.
+//
+// White represents true pixels and black represents false ones. The underlying
+// representation is optimized for sparse matrices; i.e. with a lot more false
+// values than true ones.
 type BinaryImage struct {
 	height, width int
-	pixels        []bool
+	pixels        map[image.Point]bool
 }
 
 var _ image.Image = &BinaryImage{}
@@ -55,29 +58,28 @@ func (b *BinaryImage) At(x, y int) color.Color {
 
 // Set sets the value at a given pixel
 func (b *BinaryImage) Set(x, y int, value bool) {
-	idx := y*b.width + x
-	if idx < 0 || idx >= len(b.pixels) {
-		return
+	p := image.Point{x, y}
+
+	if !value {
+		delete(b.pixels, p)
 	}
 
-	b.pixels[idx] = value
+	b.pixels[p] = value
 }
 
 // Get returns the boolean value at a given pixel
 func (b *BinaryImage) Get(x, y int) bool {
-	idx := y*b.width + x
-	if idx < 0 || idx >= len(b.pixels) {
-		return false
-	}
-	return b.pixels[idx]
+	return b.pixels[image.Point{x, y}]
 }
 
 // Invert inverts the image.
 //
 // Black pixels become white and white ones become black.
 func (b *BinaryImage) Invert() {
-	for i, v := range b.pixels {
-		b.pixels[i] = !v
+	for x := 0; x < b.width; x++ {
+		for y := 0; y < b.height; y++ {
+			b.Set(x, y, !b.Get(x, y))
+		}
 	}
 }
 
@@ -86,7 +88,7 @@ func NewEmptyBinaryImage(height, width int) *BinaryImage {
 	return &BinaryImage{
 		height: height,
 		width:  width,
-		pixels: make([]bool, height*width),
+		pixels: make(map[image.Point]bool),
 	}
 }
 
@@ -110,7 +112,7 @@ func NewBinaryImage(img image.Image, threshold int) *BinaryImage {
 		for x := 0; x < b.width; x++ {
 			p := luminance(img.At(x, y))
 			if p >= t {
-				b.pixels[y*b.width+x] = true
+				b.Set(x, y, true)
 			}
 		}
 	}
