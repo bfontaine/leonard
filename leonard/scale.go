@@ -29,7 +29,7 @@ func averageColor(colors []color.Color) color.Color {
 
 // Downscale reduces the size of an image by 4x (width/2 and height/2) by
 // averaging the values of 4-pixels squares.
-func Downscale(img image.Image) image.Image { // FIXME
+func Downscale(img image.Image) image.Image {
 	// https://en.wikipedia.org/wiki/Pyramid_(image_processing)
 
 	bounds := img.Bounds()
