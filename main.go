@@ -25,8 +25,8 @@ var transformFuncs = map[string]func(image.Image) image.Image{
 
 		b.ThinEdges()
 
-		acc := b.HoughTransform()
-		b.DrawLines(acc)
+		// acc := b.HoughTransform()
+		// b.DrawLines(acc)
 
 		return b
 	},

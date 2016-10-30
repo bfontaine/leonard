@@ -15,8 +15,9 @@ const (
 // https://en.wikipedia.org/wiki/Randomized_Hough_transform
 // http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/AV1011/macdonald.pdf
 
-// Re the HT issues see:
+// Other Resources:
 // https://www.uio.no/studier/emner/matnat/ifi/INF4300/h09/undervisningsmateriale/hough09.pdf
+// http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_houghlines/py_houghlines.html
 
 type houghAccumulator struct {
 	bins     [][thetaCount]uint8
