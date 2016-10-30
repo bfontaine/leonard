@@ -3,7 +3,6 @@ package leonard
 import (
 	"image"
 	"math"
-	"sort"
 )
 
 const (
@@ -103,80 +102,6 @@ func (b *BinaryImage) HoughTransform() *houghAccumulator {
 	return accumulator
 }
 
-type line struct {
-	p1, p2 image.Point
-}
-
-type vpoints []image.Point
-
-func (pts vpoints) Len() int           { return len(pts) }
-func (pts vpoints) Less(i, j int) bool { return pts[i].Y < pts[j].Y }
-func (pts vpoints) Swap(i, j int)      { pts[i], pts[j] = pts[j], pts[i] }
-
-func findVerticalLines(pts []image.Point, limit int) (xs []int, ys [][2]int) {
-	if len(pts) < 2 {
-		return nil, nil
-	}
-
-	// first, sort points along the vertical axis
-	sort.Sort(vpoints(pts))
-
-	var line []image.Point
-
-	for _, pt := range pts {
-		if len(line) == 0 {
-			line = append(line, pt)
-			continue
-		}
-
-		lastPoint := line[len(line)-1]
-
-		if pt.Y == lastPoint.Y {
-			continue
-		}
-
-		if pt.Y < lastPoint.Y+limit {
-			line = append(line, pt)
-			continue
-		}
-
-		// isolated points
-		if len(line) < 3 {
-			line = line[:0]
-			continue
-		}
-
-		x := 0
-		for _, pt := range line {
-			x += pt.X
-		}
-		x /= len(line)
-		xs = append(xs, x)
-		ys = append(ys, [2]int{
-			line[0].Y,
-			line[len(line)-1].Y,
-		})
-
-		line = append(line[:0], pt)
-		continue
-	}
-
-	if len(line) >= 3 {
-		x := 0
-		for _, pt := range line {
-			x += pt.X
-		}
-		x /= len(line)
-		xs = append(xs, x)
-		ys = append(ys, [2]int{
-			line[0].Y,
-			line[len(line)-1].Y,
-		})
-	}
-
-	return xs, ys
-}
-
 // DrawLines takes an (r, theta) accumulator as returned by HoughTransform and
 // draw the corresponding lines on the image.
 func (b *BinaryImage) DrawLines(acc *houghAccumulator) {
@@ -192,36 +117,10 @@ func (b *BinaryImage) DrawLines(acc *houghAccumulator) {
 			off := r*acc.binWidth + acc.binWidth/2
 
 			if theta == thetaV {
-				// experimental
-
-				xs, ys := findVerticalLines(n, 10)
-
-				if xs == nil {
-					continue
+				for y := 0; y < b.height; y++ {
+					b.Set(off, y, true)
 				}
-
-				// erase existing points
-				for _, pt := range n {
-					b.Set(pt.X, pt.Y, false)
-				}
-
-				for i, x := range xs {
-
-					y1 := ys[i][0]
-					y2 := ys[i][1]
-
-					for y := y1; y <= y2; y++ {
-						b.Set(x, y, true)
-					}
-				}
-
-				/*
-					for y := 0; y < b.height; y++ {
-						b.Set(off, y, true)
-					}*/
-
 			} else if theta == thetaH {
-				// boundless drawing
 				for x := 0; x < b.width; x++ {
 					b.Set(x, off, true)
 				}
