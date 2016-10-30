@@ -205,3 +205,100 @@ func (b *BinaryImage) ThinEdges() *BinaryImage {
 
 	return b
 }
+
+const (
+	tetaV = 0
+	tetaH = 1
+)
+
+// 2 = number of teta we support. For now only vertical & horizontal
+type houghAccumulator struct {
+	bins     [][2]uint8
+	binWidth int
+}
+
+func newHoughAccumulator(bins, binWidth int) *houghAccumulator {
+	return &houghAccumulator{
+		bins:     make([][2]uint8, bins),
+		binWidth: binWidth,
+	}
+}
+
+func (acc *houghAccumulator) Inc(bin, teta int) {
+	acc.bins[bin][teta]++
+}
+
+func (acc houghAccumulator) Max() (m uint8) {
+	for _, bin := range acc.bins {
+		for _, v := range bin {
+			if v > m {
+				m = v
+			}
+		}
+	}
+	return m
+}
+
+// HoughTransform performs a Hough Transform on the image and return an
+// (r, teta) accumulator.
+func (b *BinaryImage) HoughTransform() *houghAccumulator {
+	// Algorithm: https://en.wikipedia.org/wiki/Hough_transform#Implementation
+	// For now we only check vertical & horizontal lines
+
+	minR := 0
+	// max length of the r parameter; that is if it's a north-west ->
+	// south-east diagonal at the top-right of the image.
+	maxR := b.width * b.height
+
+	// Arbitrary value. Higher values mean faster but more approximate results.
+	binWidth := 6
+	bins := (maxR-minR)/binWidth + 1
+
+	accumulator := newHoughAccumulator(bins, binWidth)
+
+	b.EachPixel(func(x, y int) {
+		// FIXME we should maybe store min/max coordinates for each bin so we
+		// know where to start & end the lines
+		// -> problem: there might be multiple lines in the same bin
+		// -> solution: store all coordinates then run some heuristics
+		// (*magic*)
+
+		if b.Get(north.apply(x, y)) && b.Get(south.apply(x, y)) {
+			// vertical
+			accumulator.Inc(x/binWidth, tetaV)
+		}
+
+		if b.Get(west.apply(x, y)) && b.Get(east.apply(x, y)) {
+			// horizontal
+			accumulator.Inc(y/binWidth, tetaH)
+		}
+	})
+
+	return accumulator
+}
+
+// DrawLines takes an (r, teta) accumulator as returned by HoughTransform and
+// draw the corresponding lines on the image.
+func (b *BinaryImage) DrawLines(acc *houghAccumulator) {
+	threshold := uint8(acc.binWidth * 5) // arbitrary
+
+	for r, ts := range acc.bins {
+		for teta, n := range ts {
+			if n < threshold {
+				continue
+			}
+
+			// draw a line in the middle of the bin
+			rm := r*acc.binWidth + acc.binWidth/2
+			if teta == tetaV {
+				for y := 0; y < b.height; y++ {
+					b.Set(rm, y, true)
+				}
+			} else if teta == tetaH {
+				for x := 0; x < b.width; x++ {
+					b.Set(x, rm, true)
+				}
+			}
+		}
+	}
+}
