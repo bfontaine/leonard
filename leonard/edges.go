@@ -79,8 +79,6 @@ func (b *BinaryImage) thinEdgesIteration(odd bool) (*BinaryImage, bool) {
 
 	changed := false
 	b.EachPixel(func(x, y int) {
-		b2.Set(x, y, true)
-
 		// p9 p2 p3
 		// p8 P1 p4
 		// p7 p6 p5
@@ -115,8 +113,7 @@ func (b *BinaryImage) thinEdgesIteration(odd bool) (*BinaryImage, bool) {
 
 		// (a)
 		if count < 2 || count > 6 {
-			// preserve the node
-			return
+			goto preservePixel
 		}
 
 		// last transition
@@ -135,43 +132,45 @@ func (b *BinaryImage) thinEdgesIteration(odd bool) (*BinaryImage, bool) {
 
 				// (c)
 				if p2 && p4 && p6 {
-					return
+					goto preservePixel
 				}
 
 				// (d)
 				if p4 && p6 && p8 {
-					return
+					goto preservePixel
 				}
 			} else {
 				// second subiteration
 
 				// (c')
 				if p2 && p4 && p8 {
-					return
+					goto preservePixel
 				}
 
 				// (d')
 				if p2 && p6 && p8 {
-					return
+					goto preservePixel
 				}
 			}
 		case 2:
 			// Kocharyan (2013)'s modifications
 			if odd {
 				if !p4 || !p2 || p3 || p7 || p8 {
-					return
+					goto preservePixel
 				}
 			} else {
 				if !p6 || !p8 || p3 || p4 || p7 {
-					return
+					goto preservePixel
 				}
 			}
 		}
 
 		// delete the pixel
-		b2.Set(x, y, false)
 		changed = true
+		return
 
+	preservePixel:
+		b2.Set(x, y, true)
 	})
 	return b2, changed
 }
@@ -194,10 +193,10 @@ func (b *BinaryImage) ThinEdges() *BinaryImage {
 	changed1 := true
 	changed2 := true
 
-	var b2 *BinaryImage
+	b2 := b.Clone()
 
 	for changed1 || changed2 {
-		b2, changed1 = b.thinEdgesIteration(true)
+		b2, changed1 = b2.thinEdgesIteration(true)
 		b2, changed2 = b2.thinEdgesIteration(false)
 	}
 

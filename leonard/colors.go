@@ -90,6 +90,14 @@ func (b *BinaryImage) EachPixel(fn func(x, y int)) {
 	}
 }
 
+func (b *BinaryImage) Clone() *BinaryImage {
+	b2 := NewEmptyBinaryImage(b.height, b.width)
+	for p, v := range b.pixels {
+		b2.pixels[p] = v
+	}
+	return b2
+}
+
 // NewEmptyBinaryImage returns a new empty (= all black) binary image
 func NewEmptyBinaryImage(height, width int) *BinaryImage {
 	return &BinaryImage{
