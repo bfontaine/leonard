@@ -33,6 +33,8 @@ type BinaryImage struct {
 	pixels        []bool
 }
 
+var _ image.Image = &BinaryImage{}
+
 // ColorModel implements the image.Image interface
 func (b *BinaryImage) ColorModel() color.Model {
 	return color.GrayModel
@@ -68,6 +70,15 @@ func (b *BinaryImage) Get(x, y int) bool {
 		return false
 	}
 	return b.pixels[idx]
+}
+
+// Invert inverts the image.
+//
+// Black pixels become white and white ones become black.
+func (b *BinaryImage) Invert() {
+	for i, v := range b.pixels {
+		b.pixels[i] = !v
+	}
 }
 
 // NewEmptyBinaryImage returns a new empty (= all black) binary image
@@ -106,5 +117,3 @@ func NewBinaryImage(img image.Image, threshold int) *BinaryImage {
 
 	return b
 }
-
-var _ image.Image = &BinaryImage{}
